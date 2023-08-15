@@ -7,16 +7,25 @@ namespace Abharanam_App
 {
     public partial class frmGallery : Form
     {
-        public frmGallery()
-        {
-            InitializeComponent();
-        }
 
-        private void frmGallery_Load(object sender, EventArgs e)
-        {
-            string rootPath = ConfigurationManager.AppSettings["RootFolderPathGallery"];
+        #region Variable Declaration
+        private bool isInitialized = false;
+        #endregion
 
-            PopulateTreeView(rootPath, treeViewFolders.Nodes);
+        #region Initialization      
+        #endregion
+
+        #region User Functions         
+        private void InitializeForm()
+        {
+            try
+            {
+                this.Text = Resources.frmGallery_text;                
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         private void PopulateTreeView(string path, TreeNodeCollection nodes)
@@ -31,6 +40,21 @@ namespace Abharanam_App
 
             nodes.Add(node);
         }
+        #endregion
+
+        #region System Functions
+        public frmGallery()
+        {
+            InitializeComponent();
+        }
+
+        private void frmGallery_Load(object sender, EventArgs e)
+        {
+            string rootPath = ConfigurationManager.AppSettings["RootFolderPathGallery"];
+
+            PopulateTreeView(rootPath, treeViewFolders.Nodes);
+        }
+        
 
         private void treeViewFolders_AfterSelect(object sender, TreeViewEventArgs e)
         {
@@ -69,8 +93,6 @@ namespace Abharanam_App
                 listViewImages.LargeImageList = imageListLarge;
             }
         }
-
-
 
         private void listViewImages_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
@@ -111,7 +133,6 @@ namespace Abharanam_App
                 }
             }
         }
-
-
+        #endregion
     }
 }

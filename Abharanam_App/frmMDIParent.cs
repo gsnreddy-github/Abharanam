@@ -63,6 +63,8 @@ namespace Abharanam_App
                 if (!isInitialized)
                 {
                     InitializeForm();
+
+                    toolStripMenuItem1_Click(sender, e);
                 }
             }
             catch (Exception)

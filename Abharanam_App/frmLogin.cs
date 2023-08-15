@@ -56,6 +56,16 @@ namespace Abharanam_App
         public frmLogin()
         {
             InitializeComponent();
+
+            int buttonWidth = btnLogin.Width;
+            int buttonHeight = btnLogin.Height;
+            int formWidth = this.ClientSize.Width;
+            int formHeight = this.ClientSize.Height;
+
+            int buttonX = (formWidth - buttonWidth) / 2;
+            int buttonY = (formHeight - buttonHeight) / 2;
+
+            btnLogin.Location = new Point(buttonX, buttonY);
         }
 
         private void frmLogin_Load(object sender, EventArgs e)
