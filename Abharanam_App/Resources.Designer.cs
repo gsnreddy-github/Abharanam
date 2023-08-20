@@ -63,9 +63,19 @@ namespace Abharanam_App {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap _240_F_609814400_rMCzJ8CljPjvX6qXYqdqnVIhZQgCZIQ8 {
+        internal static System.Drawing.Bitmap AMJBanner {
             get {
-                object obj = ResourceManager.GetObject("240_F_609814400_rMCzJ8CljPjvX6qXYqdqnVIhZQgCZIQ8", resourceCulture);
+                object obj = ResourceManager.GetObject("AMJBanner", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap AMJLogo {
+            get {
+                object obj = ResourceManager.GetObject("AMJLogo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -112,16 +122,6 @@ namespace Abharanam_App {
         internal static string msg_invalid_credentials {
             get {
                 return ResourceManager.GetString("msg_invalid_credentials", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap WhatsApp_Image_2022_09_24_at_19_01_05 {
-            get {
-                object obj = ResourceManager.GetObject("WhatsApp Image 2022-09-24 at 19.01.05", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

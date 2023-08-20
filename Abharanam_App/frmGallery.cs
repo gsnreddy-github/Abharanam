@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
-using System.IO;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Abharanam_App
 {
     public partial class frmGallery : Form
     {
-
         #region Variable Declaration
         private bool isInitialized = false;
         #endregion
@@ -20,7 +25,7 @@ namespace Abharanam_App
         {
             try
             {
-                this.Text = Resources.frmGallery_text;                
+                this.Text = Resources.frmGallery_text;
             }
             catch (Exception)
             {
@@ -48,91 +53,133 @@ namespace Abharanam_App
             InitializeComponent();
         }
 
-        private void frmGallery_Load(object sender, EventArgs e)
+        private void frmGalleryNew_Load(object sender, EventArgs e)
         {
             string rootPath = ConfigurationManager.AppSettings["RootFolderPathGallery"];
 
             PopulateTreeView(rootPath, treeViewFolders.Nodes);
         }
-        
+
+
+
+        #endregion
+
 
         private void treeViewFolders_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            listViewImages.Items.Clear();
-            imageListLarge.Images.Clear();
-            pictureBoxSelectedImage.Image = null;
-
-            if (e.Node != null)
+            flowLayoutPanelGallery.Controls.Clear();
+            try
             {
-                string selectedFolder = Path.Combine(ConfigurationManager.AppSettings["RootFolderPath"], e.Node.FullPath);
 
-                HashSet<string> uniqueImagePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                string imageExtensionsSetting = ConfigurationManager.AppSettings["ImageExtensions"];
-                string[] imageExtensions = imageExtensionsSetting.Split(',');
 
-                foreach (string extension in imageExtensions)
+                if (e.Node != null)
                 {
-                    string[] imageFiles = Directory.GetFiles(selectedFolder, extension.Trim(), SearchOption.TopDirectoryOnly);
-                    foreach (string imagePath in imageFiles)
-                    {
-                        uniqueImagePaths.Add(imagePath);
-                    }
-                }
+                    string selectedFolderPath = Path.Combine(ConfigurationManager.AppSettings["RootFolderPath"], e.Node.FullPath);
 
-                foreach (string imageFile in uniqueImagePaths)
-                {
-                    using (Bitmap image = new Bitmap(imageFile))
-                    {
-                        imageListLarge.Images.Add(image);
-                        ListViewItem item = new ListViewItem(Path.GetFileName(imageFile), imageListLarge.Images.Count - 1);
-                        listViewImages.Items.Add(item);
-                    }
+                    LoadThumbnailImages(selectedFolderPath);
                 }
-
-                listViewImages.LargeImageList = imageListLarge;
             }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
         }
 
-        private void listViewImages_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        private void LoadThumbnailImages(string folderPath)
         {
-            if (e.IsSelected)
+            flowLayoutPanelGallery.Controls.Clear(); // Clear existing thumbnail controls
+
+            string[] imageExtensions = GetSupportedImageExtensions();
+            List<string> imageFiles = new List<string>();
+
+            foreach (string ext in imageExtensions)
             {
-                string selectedImage = e.Item.Text;
-                string selectedFolder = ConfigurationManager.AppSettings["RootFolderPath"] + treeViewFolders.SelectedNode.FullPath;
-                string imagePath = Path.Combine(selectedFolder, selectedImage);
-
-                using (Bitmap originalImage = new Bitmap(imagePath))
+                string[] imageFilesSelected = Directory.GetFiles(folderPath, ext.Trim(), SearchOption.TopDirectoryOnly);
+                if (imageFilesSelected.Length > 0)
                 {
-                    // Calculate the aspect ratio
-                    float aspectRatio = (float)originalImage.Width / originalImage.Height;
+                    imageFiles.AddRange(imageFilesSelected);
+                }
+            }
 
-                    // Set the maximum dimensions for the resized image
-                    int maxWidth = 450;
-                    int maxHeight = 450;
+            if (imageFiles.Count > 0)
+            {
+                int thumbnailSize = int.Parse(ConfigurationManager.AppSettings["ThumbnailSize"]);
+                int maxColumns = flowLayoutPanelGallery.Width / thumbnailSize;
 
-                    // Calculate the new dimensions while fitting within the maximum size
-                    int newWidth, newHeight;
+                int currentRow = 0;
+                int currentColumn = 0;
 
-                    if (originalImage.Width > originalImage.Height)
+                foreach (string imageFile in imageFiles)
+                {
+                    PictureBox pictureBox = new PictureBox
                     {
-                        newWidth = maxWidth;
-                        newHeight = (int)(maxWidth / aspectRatio);
-                    }
-                    else
+                        Image = Image.FromFile(imageFile),
+                        SizeMode = PictureBoxSizeMode.Zoom,
+                        Width = thumbnailSize,
+                        Height = thumbnailSize,
+                        Tag = imageFile // Store image file path in Tag property
+                    };
+
+                    pictureBox.Click += PictureBox_Click;
+
+                    flowLayoutPanelGallery.Controls.Add(pictureBox);
+
+                    pictureBox.Location = new Point(currentColumn * thumbnailSize, currentRow * thumbnailSize);
+
+                    currentColumn++;
+                    if (currentColumn >= maxColumns)
                     {
-                        newHeight = maxHeight;
-                        newWidth = (int)(maxHeight * aspectRatio);
+                        currentColumn = 0;
+                        currentRow++;
                     }
+                }
+            }
+            else
+            {
+                MessageBox.Show("No images found in the selected folder.");
+            }
+        }
 
-                    // Resize the image
-                    Bitmap resizedImage = new Bitmap(originalImage, newWidth, newHeight);
+        private void PictureBox_Click(object sender, EventArgs e)
+        {
+            PictureBox clickedPictureBox = sender as PictureBox;
 
-                    // Display the resized image in the PictureBox
-                    pictureBoxSelectedImage.Image = resizedImage;
+            List<string> imagePaths = flowLayoutPanelGallery.Controls
+                .OfType<PictureBox>()
+                .Select(pb => pb.Tag.ToString())
+                .ToList();
+
+            int selectedIndex = imagePaths.IndexOf(clickedPictureBox.Tag.ToString());
+
+            if (selectedIndex != -1)
+            {
+                using (frmImagePopup popupForm = new frmImagePopup(imagePaths, selectedIndex))
+                {
+                    popupForm.ShowDialog();
                 }
             }
         }
-        #endregion
+
+
+
+
+        private string[] GetSupportedImageExtensions()
+        {
+            string imageExtensionsSetting = ConfigurationManager.AppSettings["ImageExtensions"];
+            string[] imageExtensions = imageExtensionsSetting.Split(',');
+
+            for (int i = 0; i < imageExtensions.Length; i++)
+            {
+                imageExtensions[i] = imageExtensions[i].TrimStart('.');
+            }
+
+            return imageExtensions;
+        }
+
+
+
     }
 }
